@@ -187,6 +187,7 @@ Common causes:
 ## 🔓 Ports
 
 Ensure GCP firewall allows:
+(this is already done by Terraform)
 
 - TCP 80 (HTTP / ACME)
 - TCP 443 (HTTPS)
