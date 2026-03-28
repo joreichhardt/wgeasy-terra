@@ -107,14 +107,6 @@ acme_email    = "your@email.com"
 
 ## 🔐 Password Hash
 
-Recommended (wg-easy native):
-
-```bash
-docker run --rm ghcr.io/wg-easy/wg-easy:14 wgpw YOUR_PASSWORD
-```
-
-Alternative (htpasswd):
-
 ```bash
 htpasswd -nbB user YOUR_PASSWORD | cut -d: -f2
 ```
