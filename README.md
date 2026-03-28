@@ -40,7 +40,7 @@ terraform apply
 
 👉 After deployment:
 
-- Web UI: https://wg.<your-domain>
+- Web UI: https://wg.YOURDOMAIN
 - Login with your configured password
 
 ---
