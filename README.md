@@ -31,7 +31,7 @@ GCP VM (Debian)
 ## ⚡ Quick Start
 
 ```bash
-git clone https://github.com/<your-repo>/wgeasy-terra
+git clone https://github.com/joreichhardt/wgeasy-terra
 cd wgeasy-terra
 
 terraform init
