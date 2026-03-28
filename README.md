@@ -16,3 +16,10 @@ add a Bucket for the state file
 Delete everything
 
     cd wgeasy-terra
+
+
+It is running in a docker container
+traefik is providing an ssl cert via letsencrypt
+
+## vm will restart after creation 
+It runs some systemd service for one time to start the creation of the containers.
