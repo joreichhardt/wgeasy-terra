@@ -155,7 +155,7 @@ terraform destroy
 ### DNS not resolving
 
 ```bash
-dig wg.farmelo.de +short
+dig fqdn +short
 ```
 
 If empty → check nameservers (NOT DNS records)
