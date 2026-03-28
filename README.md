@@ -1,39 +1,220 @@
-## WireGuard + Web UI via Terraform on GCP
+# 🚀 WireGuard VPN + Web UI on GCP (Terraform)
 
-spin up a vpn in your country as you are travelling
+Provision a **self-hosted VPN endpoint in your home country** while traveling — fully automated with **Terraform + Docker + Traefik + Let’s Encrypt**.
 
-    git clone wgeasy-terra
-    cd wgeasy-terra
-    terraform init
-    terraform apply
+---
 
-enjoy
+## ✨ Features
 
+- 🌍 Deploy VPN in any GCP region (your “home country IP”)
+- 🔐 WireGuard via **wg-easy Web UI**
+- 🔒 Automatic HTTPS via **Traefik + Let’s Encrypt**
+- ⚙️ Fully automated provisioning with Terraform
+- ♻️ Ephemeral infrastructure (destroy anytime)
+- 🧠 Idempotent bootstrap via **GCE startup scripts + systemd**
 
-You need to configure GCP
-add a Bucket for the state file
+---
 
-Delete everything
+## 🏗️ Architecture
 
-    cd wgeasy-terra
-    terraform destroy
+```
+GCP VM (Debian)
+├── Docker
+│   ├── Traefik (reverse proxy + ACME)
+│   └── wg-easy (WireGuard + UI)
+├── systemd (one-shot bootstrap)
+└── Terraform (provisioning + state in GCS)
+```
 
-It is running in a docker container
-traefik is providing an ssl cert via letsencrypt
+---
 
-## vm will restart after creation 
-It runs some systemd service for one time to start the creation of the containers
+## ⚡ Quick Start
 
+```bash
+git clone https://github.com/<your-repo>/wgeasy-terra
+cd wgeasy-terra
 
-## terraform.tfvars
-    ssh_pubkey = ""
+terraform init
+terraform apply
+```
 
-    password_hash = ""
+👉 After deployment:
 
-    acme_email = "your email"
+- Web UI: https://wg.<your-domain>
+- Login with your configured password
 
-pubkey you only need if not using OS Login
+---
 
-password hash
+## 🧾 Prerequisites
 
-    htpasswd -nbB user Passwort | cut -d: -f2
+### GCP
+
+- Project created
+- Billing enabled
+- APIs enabled:
+  - Compute Engine
+  - Cloud DNS (recommended)
+
+### Terraform State (GCS)
+
+Create a bucket:
+
+```bash
+gsutil mb -p <PROJECT_ID> gs://<STATE_BUCKET>
+```
+
+Example:
+
+```hcl
+project_id        = "project-xxx"
+state_bucket_name = "project-xxx-tf-state"
+```
+
+---
+
+## 🌐 DNS Setup (Critical)
+
+You must point your domain to **Google Cloud DNS**.
+
+### Nameservers:
+
+```
+ns-cloud-b1.googledomains.com
+ns-cloud-b2.googledomains.com
+ns-cloud-b3.googledomains.com
+ns-cloud-b4.googledomains.com
+```
+
+Then create:
+
+```
+wg.farmelo.de → A → <VM_PUBLIC_IP>
+```
+
+---
+
+## ⚙️ Configuration
+
+### terraform.tfvars
+
+```hcl
+ssh_pubkey    = ""   # optional (OS Login recommended)
+password_hash = ""   # bcrypt hash for wg-easy login
+acme_email    = "your@email.com"
+```
+
+---
+
+## 🔐 Password Hash
+
+Recommended (wg-easy native):
+
+```bash
+docker run --rm ghcr.io/wg-easy/wg-easy:14 wgpw YOUR_PASSWORD
+```
+
+Alternative (htpasswd):
+
+```bash
+htpasswd -nbB user YOUR_PASSWORD | cut -d: -f2
+```
+
+---
+
+## 🧠 Bootstrapping Logic
+
+The VM uses a **two-phase initialization**:
+
+1. Startup Script
+   - installs Docker
+   - writes config (.env, docker-compose.yml)
+   - installs systemd unit
+   - triggers reboot
+
+2. systemd one-shot service
+   - runs docker compose up -d
+   - removes bootstrap marker
+   - never runs again
+
+👉 Ensures clean, idempotent provisioning.
+
+---
+
+## 🔄 Lifecycle
+
+Destroy everything:
+
+```bash
+terraform destroy
+```
+
+---
+
+## 🔍 Troubleshooting
+
+### DNS not resolving
+
+```bash
+dig wg.farmelo.de +short
+```
+
+If empty → check nameservers (NOT DNS records)
+
+---
+
+### Containers not running
+
+```bash
+docker ps -a
+docker logs wg-easy
+docker logs traefik
+```
+
+---
+
+### HTTPS / ACME issues
+
+```bash
+docker logs traefik --tail 100
+```
+
+Common causes:
+- DNS not propagated
+- port 80/443 blocked
+
+---
+
+## 🔓 Ports
+
+Ensure GCP firewall allows:
+
+- TCP 80 (HTTP / ACME)
+- TCP 443 (HTTPS)
+- UDP 51820 (WireGuard)
+
+---
+
+## 🧹 Notes
+
+- VM reboots once after provisioning
+- Containers use restart: unless-stopped
+- No re-provisioning on reboot
+- No manual Docker interaction required
+
+---
+
+## 🧠 Why this approach?
+
+- No config drift
+- Fully reproducible infrastructure
+- Clean separation: Terraform vs runtime
+- Minimal operational overhead
+
+---
+
+## 📌 TODO / Ideas
+
+- Multi-region deployment
+- Terraform module extraction
+- Secrets via GCP Secret Manager
+- WireGuard peer automation (API)
