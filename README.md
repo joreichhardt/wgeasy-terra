@@ -16,7 +16,7 @@ add a Bucket for the state file
 Delete everything
 
     cd wgeasy-terra
-
+    terraform destroy
 
 It is running in a docker container
 traefik is providing an ssl cert via letsencrypt
