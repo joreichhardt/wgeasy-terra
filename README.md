@@ -88,7 +88,8 @@ ns-cloud-b4.googledomains.com
 Then create:
 
 ```
-wg.farmelo.de → A → <VM_PUBLIC_IP>
+wg.YOUR-DOMAIN → A → <VM_PUBLIC_IP
+THIS IS DONE BY TERRAFORM
 ```
 
 ---
