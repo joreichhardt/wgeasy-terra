@@ -23,7 +23,7 @@ GCP VM (Debian)
 │   ├── Traefik (reverse proxy + ACME)
 │   └── wg-easy (WireGuard + UI)
 ├── systemd (one-shot bootstrap)
-└── Terraform (provisioning + state in GCS)
+└── Terraform (provisioning + cloud dns + state in GCS)
 ```
 
 ---
