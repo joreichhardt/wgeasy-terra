@@ -70,7 +70,8 @@ resource "google_compute_instance" "wireguard" {
     network = "default"
 
     access_config {
-      nat_ip = google_compute_address.wireguard_ip.address
+      nat_ip       = google_compute_address.wireguard_ip.address
+      network_tier = "PREMIUM"
     }
   }
 
@@ -79,124 +80,136 @@ resource "google_compute_instance" "wireguard" {
   }
 
   metadata_startup_script = <<-EOF
-  #!/bin/bash
-  set -euxo pipefail
+#!/bin/bash
+set -euxo pipefail
 
-  export DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 
-  mkdir -p /opt/wireguard
+mkdir -p /opt/wireguard
+mkdir -p /opt/wireguard/traefik/dynamic
 
-  if [ -f /opt/wireguard/.startup-done ]; then
-    exit 0
-  fi
+cat >/etc/sysctl.d/99-wireguard.conf <<'SYSCTL'
+net.ipv4.ip_forward=1
+net.ipv4.conf.all.src_valid_mark=1
+SYSCTL
 
-  apt-get update
-  apt-get install -y ca-certificates curl docker.io docker-compose
+sysctl --system
 
-  systemctl enable docker
-  systemctl start docker
+apt-get update
+apt-get install -y ca-certificates curl docker.io docker-compose nftables
 
-  mkdir -p /opt/wireguard/traefik
+cat >/etc/nftables.conf <<'NFT'
+#!/usr/sbin/nft -f
 
-  touch /opt/wireguard/traefik/acme.json
-  chmod 600 /opt/wireguard/traefik/acme.json
+flush ruleset
 
-  cat >/opt/wireguard/.env <<ENVFILE
-  ACME_EMAIL=${var.acme_email}
-  ENVFILE
+table ip nat {
+  chain POSTROUTING {
+    type nat hook postrouting priority 100;
+    oifname "ens4" masquerade
+  }
+}
 
-  chmod 600 /opt/wireguard/.env
+table ip filter {
+  chain FORWARD {
+    type filter hook forward priority 0;
+    policy accept;
+  }
+}
+NFT
 
-  cat >/opt/wireguard/docker-compose.yml <<'COMPOSE'
+systemctl enable nftables
+systemctl restart nftables
+
+systemctl enable docker
+systemctl start docker
+
+touch /opt/wireguard/traefik/acme.json
+chmod 600 /opt/wireguard/traefik/acme.json
+
+cat >/opt/wireguard/traefik/traefik.yml <<'TRAEFIK'
+api:
+  dashboard: false
+
+providers:
+  docker:
+    exposedByDefault: false
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  le:
+    acme:
+      email: ${var.acme_email}
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+TRAEFIK
+
+cat >/opt/wireguard/traefik/dynamic/wg.yml <<'DYNAMIC'
+http:
+  routers:
+    wg:
+      rule: "Host(`${var.subdomain}.${trimsuffix(var.domain, ".")}`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: le
+      service: wg
+
   services:
-    traefik:
-      image: traefik:v3.4
-      container_name: traefik
-      restart: unless-stopped
-      command:
-        - --providers.docker=true
-        - --providers.docker.exposedbydefault=false
-        - --entrypoints.web.address=:80
-        - --entrypoints.websecure.address=:443
-        - --certificatesresolvers.le.acme.email=$${ACME_EMAIL}
-        - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-        - --certificatesresolvers.le.acme.httpchallenge=true
-        - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
-      ports:
-        - "80:80"
-        - "443:443"
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock:ro
-        - /opt/wireguard/traefik/acme.json:/letsencrypt/acme.json
-      env_file:
-        - .env
-      networks:
-        - proxy
+    wg:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:51821"
+DYNAMIC
 
-    wg-easy:
-      image: ghcr.io/wg-easy/wg-easy:15
-      container_name: wg-easy
-      restart: unless-stopped
-      cap_add:
-        - NET_ADMIN
-        - SYS_MODULE
-      environment:
-        INIT_ENABLED: "true"
-        INIT_USERNAME: "admin"
-        INIT_PASSWORD: "${var.password}"
-        INIT_HOST: "${var.subdomain}.${var.domain}"
-        INIT_PORT: "51820"
-      volumes:
-        - /etc/wireguard:/etc/wireguard
-        - /lib/modules:/lib/modules:ro
-      ports:
-        - "51820:51820/udp"
-      sysctls:
-        - net.ipv4.ip_forward=1
-        - net.ipv4.conf.all.src_valid_mark=1
-      labels:
-        - traefik.enable=true
-        - traefik.http.routers.wg.rule=Host(`${var.subdomain}.${var.domain}`)
-        - traefik.http.routers.wg.entrypoints=websecure
-        - traefik.http.routers.wg.tls=true
-        - traefik.http.routers.wg.tls.certresolver=le
-        - traefik.http.services.wg.loadbalancer.server.port=51821
-      env_file:
-        - .env
-      networks:
-        - proxy
+cat >/opt/wireguard/docker-compose.yml <<'COMPOSE'
+version: "3.8"
 
-  networks:
-    proxy:
-      driver: bridge
-  COMPOSE
+services:
+  traefik:
+    image: traefik:v3.4
+    container_name: traefik
+    restart: unless-stopped
+    network_mode: "host"
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/wireguard/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - /opt/wireguard/traefik/dynamic:/etc/traefik/dynamic:ro
+      - /opt/wireguard/traefik/acme.json:/letsencrypt/acme.json
 
-  cat >/etc/systemd/system/wireguard-firstboot.service <<'UNIT'
-  [Unit]
-  Description=WireGuard first boot deploy
-  Requires=docker.service
-  After=docker.service network-online.target
-  Wants=network-online.target
-  ConditionPathExists=/opt/wireguard/.deploy-once
+  wg-easy:
+    image: ghcr.io/wg-easy/wg-easy:15
+    container_name: wg-easy
+    restart: unless-stopped
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      INIT_ENABLED: "true"
+      INIT_USERNAME: "admin"
+      INIT_PASSWORD: ${jsonencode(var.password)}
+      INIT_HOST: ${jsonencode("${var.subdomain}.${trimsuffix(var.domain, ".")}")}
+      INIT_PORT: "51820"
+      WG_MTU: "1380"
+    volumes:
+      - /etc/wireguard:/etc/wireguard
+      - /lib/modules:/lib/modules:ro
+COMPOSE
 
-  [Service]
-  Type=oneshot
-  WorkingDirectory=/opt/wireguard
-  ExecStart=/usr/bin/docker compose up -d
-  ExecStartPost=/usr/bin/rm -f /opt/wireguard/.deploy-once
-  TimeoutStartSec=0
-
-  [Install]
-  WantedBy=multi-user.target
-  UNIT
-
-  touch /opt/wireguard/.deploy-once
-  touch /opt/wireguard/.startup-done
-
-  systemctl daemon-reload
-  systemctl enable wireguard-firstboot.service
-
-  reboot
+docker-compose -f /opt/wireguard/docker-compose.yml config
+docker-compose -f /opt/wireguard/docker-compose.yml up -d
 EOF
 }
 
