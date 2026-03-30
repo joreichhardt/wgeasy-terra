@@ -3,5 +3,6 @@ output "public_ip" {
 }
 
 output "wg_ui" {
-  value = "https://wg.farmelo.de"
+  value       = "https://${var.subdomain}.${var.domain}"
+  description = "WireGuard UI URL"
 }
