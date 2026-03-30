@@ -46,7 +46,7 @@ GCP VM (Debian)
 
     terraform init
     terraform apply
-```
+---
 
 👉 After deployment:
 
