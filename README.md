@@ -50,7 +50,7 @@ GCP VM (Debian)
 
 👉 After deployment:
 
-- Web UI: https://wg.YOURDOMAIN
+- Web UI: https://YOURSUBDOMAIN.YOURDOMAIN
 - Login with your configured password
 
 ---
