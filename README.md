@@ -73,10 +73,8 @@ Create a bucket:
 
 Example:
 
-```hcl
 project_id        = "project-xxx"
 state_bucket_name = "project-xxx-tf-state"
-```
 
 ---
 
