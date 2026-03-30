@@ -100,7 +100,7 @@ THIS IS DONE BY TERRAFORM
 
 ```hcl
 ssh_pubkey    = ""   # optional (OS Login recommended)
-password      = "YOURPASSWD"
+password      = "YOURPASSWD_MIN_12_Characters"
 acme_email    = "your@email.com"
 domain        = "YOURDOMAIN"
 subdomain     = "YOURSUBDOMAIN"
