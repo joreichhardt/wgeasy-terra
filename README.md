@@ -81,15 +81,8 @@ state_bucket_name = "project-xxx-tf-state"
 ## 🌐 DNS Setup (Critical)
 
 You must point your domain to **Google Cloud DNS**.
+Or just register your domain with **Google Cloud Domains**
 
-### Nameservers:
-
-```
-ns-cloud-b1.googledomains.com
-ns-cloud-b2.googledomains.com
-ns-cloud-b3.googledomains.com
-ns-cloud-b4.googledomains.com
-```
 
 ## 🧠 Bootstrapping Logic
 
