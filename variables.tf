@@ -32,11 +32,6 @@ variable "ssh_pubkey" {
   type = string
 }
 
-variable "password_hash" {
-  type      = string
-  sensitive = true
-}
-
 variable "password" {
   type      = string
   sensitive = true

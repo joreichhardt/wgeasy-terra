@@ -86,13 +86,12 @@ resource "google_compute_instance" "wireguard" {
 
   mkdir -p /opt/wireguard
 
-  # Wenn das Startup schon einmal vollständig vorbereitet wurde:
   if [ -f /opt/wireguard/.startup-done ]; then
     exit 0
   fi
 
   apt-get update
-  apt-get install -y ca-certificates curl docker.io docker-compose
+  apt-get install -y ca-certificates curl docker.io docker-compose-plugin
 
   systemctl enable docker
   systemctl start docker
@@ -103,9 +102,7 @@ resource "google_compute_instance" "wireguard" {
   chmod 600 /opt/wireguard/traefik/acme.json
 
   cat >/opt/wireguard/.env <<ENVFILE
-  PASSWORD_HASH=${replace(var.password_hash, "$", "$$")}
   ACME_EMAIL=${var.acme_email}
-  WG_HOST=${var.subdomain}.${var.domain}
   ENVFILE
 
   chmod 600 /opt/wireguard/.env
@@ -137,7 +134,7 @@ resource "google_compute_instance" "wireguard" {
         - proxy
 
     wg-easy:
-      image: ghcr.io/wg-easy/wg-easy:latest
+      image: ghcr.io/wg-easy/wg-easy:15
       container_name: wg-easy
       restart: unless-stopped
       cap_add:
@@ -146,8 +143,8 @@ resource "google_compute_instance" "wireguard" {
       environment:
         INIT_ENABLED: "true"
         INIT_USERNAME: "admin"
-        INIT_PASSWORD: "${password}"
-        INIT_HOST: "${subdomain}.${domain}"
+        INIT_PASSWORD: "${var.password}"
+        INIT_HOST: "${var.subdomain}.${var.domain}"
         INIT_PORT: "51820"
       volumes:
         - /etc/wireguard:/etc/wireguard
