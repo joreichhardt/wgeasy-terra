@@ -102,6 +102,10 @@ THIS IS DONE BY TERRAFORM
 ssh_pubkey    = ""   # optional (OS Login recommended)
 password_hash = ""   # bcrypt hash for wg-easy login
 acme_email    = "your@email.com"
+domain        = "YOURDOMAIN"
+subdomain     = "YOURSUBDOMAIN"
+dnszone       = "YOURDNSZONE"
+
 ```
 
 ---
