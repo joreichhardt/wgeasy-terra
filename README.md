@@ -30,9 +30,20 @@ GCP VM (Debian)
 
 ## ⚡ Quick Start
 
-```bash
-git clone https://github.com/joreichhardt/wgeasy-terra
-cd wgeasy-terra
+    git clone https://github.com/joreichhardt/wgeasy-terra
+    cd wgeasy-terra
+
+    vim terraform.tfvars
+
+
+hcl
+ssh_pubkey    = ""   # optional (OS Login recommended)
+password      = "YOURPASSWD_MIN_12_Characters"
+acme_email    = "your@email.com"
+domain        = "YOURDOMAIN"
+subdomain     = "YOURSUBDOMAIN"
+dnszone       = "YOURDNSZONE"
+
 
 terraform init
 terraform apply
