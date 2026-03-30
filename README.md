@@ -91,12 +91,6 @@ ns-cloud-b3.googledomains.com
 ns-cloud-b4.googledomains.com
 ```
 
-Then create:
-
-```
-wg.YOUR-DOMAIN → A → <VM_PUBLIC_IP
-THIS IS DONE BY TERRAFORM
-```
 
 ---
 
