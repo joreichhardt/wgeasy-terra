@@ -11,7 +11,6 @@ Provision a **self-hosted VPN endpoint in your home country** while traveling �
 - 🔒 Automatic HTTPS via **Traefik + Let’s Encrypt**
 - ⚙️ Fully automated provisioning with Terraform
 - ♻️ Ephemeral infrastructure (destroy anytime)
-- 🧠 Idempotent bootstrap via **GCE startup scripts + systemd**
 
 ---
 
@@ -84,25 +83,6 @@ You must point your domain to **Google Cloud DNS**.
 Or just register your domain with **Google Cloud Domains**
 
 
-## 🧠 Bootstrapping Logic
-
-The VM uses a **two-phase initialization**:
-
-1. Startup Script
-   - installs Docker
-   - writes config (.env, docker-compose.yml)
-   - installs systemd unit
-   - triggers reboot
-
-2. systemd one-shot service
-   - runs docker compose up -d
-   - removes bootstrap marker
-   - never runs again
-
-👉 Ensures clean, idempotent provisioning.
-
----
-
 ## 🔄 Lifecycle
 
 Destroy everything:
@@ -145,40 +125,10 @@ Common causes:
 - DNS not propagated
 - port 80/443 blocked
 
----
-
-## 🔓 Ports
-
-Ensure GCP firewall allows:
-(this is already done by Terraform)
-
-- TCP 80 (HTTP / ACME)
-- TCP 443 (HTTPS)
-- UDP 51820 (WireGuard)
-
----
-
-## 🧹 Notes
-
-- VM reboots once after provisioning
-- Containers use restart: unless-stopped
-- No re-provisioning on reboot
-- No manual Docker interaction required
-
----
-
-## 🧠 Why this approach?
-
-- No config drift
-- Fully reproducible infrastructure
-- Clean separation: Terraform vs runtime
-- Minimal operational overhead
 
 ---
 
 ## 📌 TODO / Ideas
 
-- Multi-region deployment
-- Terraform module extraction
 - Secrets via GCP Secret Manager
-- WireGuard peer automation (API)
+- Backstage Portal for one-click installation
