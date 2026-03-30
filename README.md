@@ -91,21 +91,6 @@ ns-cloud-b3.googledomains.com
 ns-cloud-b4.googledomains.com
 ```
 
-
----
-
-## 🔐 Password Hash
-
-    seems to be fixed in latest version
-
-You need to run the container one time locally to exec wgpw to get a valid hash for your tfvars
-
-```bash
-    docker run ghcr.io/wg-easy/wg-easy:nightly wgpw YOURPASSWORD
-```
-
----
-
 ## 🧠 Bootstrapping Logic
 
 The VM uses a **two-phase initialization**:
