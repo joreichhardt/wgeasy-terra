@@ -112,8 +112,10 @@ dnszone       = "YOURDNSZONE"
 
 ## 🔐 Password Hash
 
+You need to run the container one time locally to exec wgpw to get a valid hash for your tfvars
+
 ```bash
-htpasswd -nbB user YOUR_PASSWORD | cut -d: -f2
+    docker run ghcr.io/wg-easy/wg-easy:nightly wgpw YOURPASSWORD
 ```
 
 ---
