@@ -21,7 +21,6 @@ GCP VM (Debian)
 ├── Docker
 │   ├── Traefik (reverse proxy + ACME)
 │   └── wg-easy (WireGuard + UI)
-├── systemd (one-shot bootstrap)
 └── Terraform (provisioning + cloud dns + state in GCS)
 ```
 
