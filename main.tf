@@ -91,7 +91,7 @@ resource "google_compute_instance" "wireguard" {
   fi
 
   apt-get update
-  apt-get install -y ca-certificates curl docker.io docker-compose-plugin
+  apt-get install -y ca-certificates curl docker.io docker-compose
 
   systemctl enable docker
   systemctl start docker
