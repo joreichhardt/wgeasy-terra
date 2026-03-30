@@ -41,6 +41,18 @@ variable "acme_email" {
   type = string
 }
 
+variable "domain" {
+  type = string
+}
+
+variable "subdomain" {
+  type = string
+}
+
+variable "dnszone" {
+  type = string
+}
+
 variable "ssh_source_ranges" {
   type    = list(string)
   default = ["0.0.0.0/0"]

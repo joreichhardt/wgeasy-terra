@@ -4,8 +4,8 @@ provider "google" {
   zone    = var.zone
 }
 
-data "google_dns_managed_zone" "farmelo" {
-  name = "farmelo"
+data "google_dns_managed_zone" "selected" {
+  name = var.dnszone
 }
 
 resource "google_compute_address" "wireguard_ip" {
@@ -77,6 +77,7 @@ resource "google_compute_instance" "wireguard" {
   metadata = {
     ssh-keys = "${var.ssh_user}:${var.ssh_pubkey}"
   }
+
   metadata_startup_script = <<-EOF
   #!/bin/bash
   set -euxo pipefail
@@ -104,7 +105,7 @@ resource "google_compute_instance" "wireguard" {
   cat >/opt/wireguard/.env <<ENVFILE
   PASSWORD_HASH=${replace(var.password_hash, "$", "$$")}
   ACME_EMAIL=${var.acme_email}
-  WG_HOST=wg.farmelo.de
+  WG_HOST=${var.subdomain}.${var.domain}
   ENVFILE
 
   chmod 600 /opt/wireguard/.env
@@ -156,7 +157,7 @@ resource "google_compute_instance" "wireguard" {
         - net.ipv4.conf.all.src_valid_mark=1
       labels:
         - traefik.enable=true
-        - traefik.http.routers.wg.rule=Host(`wg.farmelo.de`)
+        - traefik.http.routers.wg.rule=Host(`${var.subdomain}.${var.domain}`)
         - traefik.http.routers.wg.entrypoints=websecure
         - traefik.http.routers.wg.tls=true
         - traefik.http.routers.wg.tls.certresolver=le
@@ -201,10 +202,10 @@ EOF
 }
 
 resource "google_dns_record_set" "wireguard" {
-  name         = "wg.farmelo.de."
+  name         = "${var.subdomain}.${trimsuffix(var.domain, ".")}."
   type         = "A"
   ttl          = 300
-  managed_zone = data.google_dns_managed_zone.farmelo.name
+  managed_zone = data.google_dns_managed_zone.selected.name
 
   rrdatas = [google_compute_address.wireguard_ip.address]
 }
