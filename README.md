@@ -69,9 +69,7 @@ GCP VM (Debian)
 
 Create a bucket:
 
-```bash
-gsutil mb -p <PROJECT_ID> gs://<STATE_BUCKET>
-```
+    gsutil mb -p <PROJECT_ID> gs://<STATE_BUCKET>
 
 Example:
 
