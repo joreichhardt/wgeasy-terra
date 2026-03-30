@@ -36,17 +36,16 @@ GCP VM (Debian)
     vim terraform.tfvars
 
 
-hcl
-ssh_pubkey    = ""   # optional (OS Login recommended)
-password      = "YOURPASSWD_MIN_12_Characters"
-acme_email    = "your@email.com"
-domain        = "YOURDOMAIN"
-subdomain     = "YOURSUBDOMAIN"
-dnszone       = "YOURDNSZONE"
+    ssh_pubkey    = ""   # optional (OS Login recommended)
+    password      = "YOURPASSWD_MIN_12_Characters"
+    acme_email    = "your@email.com"
+    domain        = "YOURDOMAIN"
+    subdomain     = "YOURSUBDOMAIN"
+    dnszone       = "YOURDNSZONE"
 
 
-terraform init
-terraform apply
+    terraform init
+    terraform apply
 ```
 
 👉 After deployment:
@@ -101,22 +100,6 @@ Then create:
 ```
 wg.YOUR-DOMAIN → A → <VM_PUBLIC_IP
 THIS IS DONE BY TERRAFORM
-```
-
----
-
-## ⚙️ Configuration
-
-### terraform.tfvars
-
-```hcl
-ssh_pubkey    = ""   # optional (OS Login recommended)
-password      = "YOURPASSWD_MIN_12_Characters"
-acme_email    = "your@email.com"
-domain        = "YOURDOMAIN"
-subdomain     = "YOURSUBDOMAIN"
-dnszone       = "YOURDNSZONE"
-
 ```
 
 ---
