@@ -10,7 +10,7 @@ variable "region" {
 
 variable "zone" {
   type    = string
-  default = "europe-west3-a"
+  default = "europe-west3-c"
 }
 
 variable "machine_type" {
@@ -33,6 +33,11 @@ variable "ssh_pubkey" {
 }
 
 variable "password_hash" {
+  type      = string
+  sensitive = true
+}
+
+variable "password" {
   type      = string
   sensitive = true
 }

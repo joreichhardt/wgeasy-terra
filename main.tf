@@ -137,16 +137,18 @@ resource "google_compute_instance" "wireguard" {
         - proxy
 
     wg-easy:
-      image: ghcr.io/wg-easy/wg-easy:14
+      image: ghcr.io/wg-easy/wg-easy:latest
       container_name: wg-easy
       restart: unless-stopped
       cap_add:
         - NET_ADMIN
         - SYS_MODULE
       environment:
-        - WG_HOST=$${WG_HOST}
-        - PASSWORD_HASH=$${PASSWORD_HASH}
-        - WG_PORT=51820
+        INIT_ENABLED: "true"
+        INIT_USERNAME: "admin"
+        INIT_PASSWORD: "${password}"
+        INIT_HOST: "${subdomain}.${domain}"
+        INIT_PORT: "51820"
       volumes:
         - /etc/wireguard:/etc/wireguard
         - /lib/modules:/lib/modules:ro
