@@ -100,7 +100,7 @@ THIS IS DONE BY TERRAFORM
 
 ```hcl
 ssh_pubkey    = ""   # optional (OS Login recommended)
-password_hash = ""   # bcrypt hash for wg-easy login
+password      = "YOURPASSWD"
 acme_email    = "your@email.com"
 domain        = "YOURDOMAIN"
 subdomain     = "YOURSUBDOMAIN"
@@ -111,6 +111,8 @@ dnszone       = "YOURDNSZONE"
 ---
 
 ## 🔐 Password Hash
+
+    seems to be fixed in latest version
 
 You need to run the container one time locally to exec wgpw to get a valid hash for your tfvars
 
